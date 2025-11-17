@@ -9,7 +9,9 @@ function BuyCoupon() {
   const navigate = useNavigate()
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const dropdownRef = useRef(null)
-  const gender = localStorage.getItem('gender') || 'female'
+  const locationGender = location.state?.gender
+  const storedGender = localStorage.getItem('gender')
+  const gender = locationGender || storedGender || 'female'
   const userName = localStorage.getItem('userName') || 'User'
   const price = gender === 'male' ? '₹399' : '₹199'
   const priceMessage =
@@ -17,9 +19,16 @@ function BuyCoupon() {
       ? 'Gentlemen, grab your Date Coupon for ₹399 and make your next meet-up unforgettable.'
       : 'Ladies enjoy the Date Coupon for just ₹199—step into a real connection today.'
 
+  useEffect(() => {
+    if (locationGender) {
+      localStorage.setItem('gender', locationGender)
+    }
+  }, [locationGender])
+
   const handleLogout = () => {
     localStorage.removeItem('token')
     localStorage.removeItem('userName')
+    localStorage.removeItem('gender')
     navigate('/login')
   }
 

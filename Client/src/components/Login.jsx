@@ -104,9 +104,13 @@ const Login = () => {
       if (data.token) {
         localStorage.setItem('token', data.token)
       }
-      if (data.user) {
+      if (data.user?.name) {
         localStorage.setItem('userName', data.user.name)
-        localStorage.setItem('gender', data.user.gender)  // ← IMPORTANT FIX
+      }
+
+      const chosenGender = data.user?.gender || (isSignup ? signupGender : loginGender)
+      if (chosenGender) {
+        localStorage.setItem('gender', chosenGender)
       }
 
       setStatus({
@@ -115,7 +119,6 @@ const Login = () => {
         message: isSignup ? 'Account created successfully!' : 'Logged in successfully!'
       })
 
-      const chosenGender = isSignup ? signupGender : loginGender
       navigate('/buycoupon', { state: { gender: chosenGender } })
     } catch (error) {
       const errorMessage =
