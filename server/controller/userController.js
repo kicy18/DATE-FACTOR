@@ -20,7 +20,16 @@ const registerUser = async (req , res)=>{
         const newUser = new userModel(userData)
         const user = await newUser.save()
         const token = jwt.sign({id:user._id}, process.env.JWT_SECRET)
-        res.json({success:true , token , user:{name:user.name}})
+        res.json({
+            success: true,
+            token,
+            user: {
+                name: user.name,
+                gender: user.gender,
+                email: user.email
+            }
+        });
+
     } catch (error) {
         console.log(error)
         res.json({success:false , message:error.message})
@@ -36,7 +45,16 @@ const loginUser = async (req , res) =>{
         const isMatch = await bcrypt.compare(password , user.password)
         if(isMatch){
             const token = jwt.sign({id:user._id}, process.env.JWT_SECRET)
-            res.json({success:true , token , user:{name:user.name}})
+            res.json({
+                success: true,
+                token,
+                user: {
+                    name: user.name,
+                    gender: user.gender,
+                    email: user.email
+                }
+            });
+
 
         }
         else{

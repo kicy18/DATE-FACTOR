@@ -1,22 +1,20 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import buycoupon_bg from '../assets/buycoupon_bg.svg'
+import result_bg from '../assets/result_bg.svg'
 import login_df_logo from '../assets/login_df_logo.svg'
 import person from '../assets/person.svg'
+import { restaurantDdata } from '../assets/assets'
+import Restaurant from './Restaurant.jsx'
+import SearchCoupon from './SearchCoupon'
 
-function BuyCoupon() {
+function AdminHome() {
   const location = useLocation()
   const navigate = useNavigate()
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
+  const [isRestaurant, setIsRestaurant] = useState(true)
   const dropdownRef = useRef(null)
-  const gender = localStorage.getItem('gender') || 'female'
   const userName = localStorage.getItem('userName') || 'User'
-  const price = gender === 'male' ? '₹399' : '₹199'
-  const priceMessage =
-    gender === 'male'
-      ? 'Gentlemen, grab your Date Coupon for ₹399 and make your next meet-up unforgettable.'
-      : 'Ladies enjoy the Date Coupon for just ₹199—step into a real connection today.'
-
+  
   const handleLogout = () => {
     localStorage.removeItem('token')
     localStorage.removeItem('userName')
@@ -42,8 +40,7 @@ function BuyCoupon() {
 
   return (
     <section
-      className='h-screen bg-cover bg-center bg-no-repeat flex flex-col text-white overflow-hidden'
-      style={{ backgroundImage: `url(${buycoupon_bg})` }}
+      className='h-screen bg-cover bg-center bg-no-repeat bg-[#FFC4C4] flex flex-col text-black overflow-hidden'
     >
       <div className='flex flex-col h-full px-4 sm:px-6 md:px-10 lg:px-20 py-4 sm:py-6'>
         {/* Header */}
@@ -55,7 +52,7 @@ function BuyCoupon() {
               onClick={() => setIsDropdownOpen(!isDropdownOpen)}
             >
               <img src={person} alt='profile icon' width={20} />
-              <h1 className='text-sm sm:text-base'>{userName}</h1>
+              <h1 className='text-sm text-white sm:text-base'>{userName}</h1>
             </div>
             {isDropdownOpen && (
               <div className='absolute right-0 mt-2 w-40 bg-black/90 backdrop-blur-sm rounded-lg shadow-lg border border-white/20 overflow-hidden z-50'>
@@ -70,36 +67,12 @@ function BuyCoupon() {
           </div>
         </div>
 
-        {/* Main Content - Centered and compact */}
-        <div className='flex flex-col justify-center items-center gap-3 sm:gap-4 md:gap-5 text-center max-w-3xl mx-auto flex-1 px-4'>
-          <h1 className='text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-red-600 leading-tight'>
-            Get Your Date Coupon Now!
-          </h1>
-          <p className='text-sm sm:text-base md:text-lg text-gray-100 max-w-2xl'>
-            Love shouldn't just stay online. Redeem your moment today!
-          </p>
-          <p className='text-xs sm:text-sm md:text-base text-gray-200 max-w-2xl'>
-            Get an exclusive Date Coupon and enjoy a real-life blind date experience at our partner restaurants.
-          </p>
-          
-          <div className='flex flex-col items-center gap-2 sm:gap-3 md:gap-4 mt-2 sm:mt-3'>
-            <p className='text-lg sm:text-xl md:text-2xl font-semibold text-red-200'>
-              Price: {price} only
-            </p>
-            <p className='text-xs sm:text-sm md:text-base text-gray-100 max-w-xl'>
-              {priceMessage}
-            </p>
-            <button className='bg-red-600 hover:bg-red-700 rounded-xl px-6 sm:px-8 md:px-10 py-2 sm:py-3 text-sm sm:text-base font-semibold cursor-pointer transition mt-1 sm:mt-2 w-full sm:w-auto'>
-              GET YOUR DATE
-            </button>
-            <p className='text-xs sm:text-sm mt-2 sm:mt-3 text-gray-200 max-w-xl'>
-              Why wait? Grab your coupon now and turn your match into a real connection.
-            </p>
-          </div>
-        </div>
+        {/* Main Content - Centered and responsive */}
+        {!isRestaurant  && <Restaurant/>}
+        {isRestaurant  && <SearchCoupon/>}
       </div>
     </section>
   )
 }
 
-export default BuyCoupon
+export default AdminHome

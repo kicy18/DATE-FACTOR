@@ -25,6 +25,8 @@ const Login = () => {
     error: '',
     message: ''
   })
+  const [showLoginPassword, setShowLoginPassword] = useState(false)
+  const [showSignupPassword, setShowSignupPassword] = useState(false)
   const navigate = useNavigate()
 
   const handleToggleMode = () => {
@@ -102,8 +104,9 @@ const Login = () => {
       if (data.token) {
         localStorage.setItem('token', data.token)
       }
-      if (data.user?.name) {
+      if (data.user) {
         localStorage.setItem('userName', data.user.name)
+        localStorage.setItem('gender', data.user.gender)  // ← IMPORTANT FIX
       }
 
       setStatus({
@@ -170,7 +173,7 @@ const Login = () => {
                   <div className='flex items-center gap-3 w-full bg-white text-black rounded-xl px-3 py-2 border border-transparent focus-within:border-red-400'>
                     <img src={lock} alt='' className='w-5 h-5 opacity-70' />
                     <input
-                      type='password'
+                      type={showLoginPassword ? 'text' : 'password'}
                       name='password'
                       className='flex-1 bg-transparent outline-none p-2 placeholder-gray-500'
                       placeholder='••••••••'
@@ -179,6 +182,13 @@ const Login = () => {
                       onChange={handleLoginInputChange}
                       required
                     />
+                    <button
+                      type='button'
+                      onClick={() => setShowLoginPassword(!showLoginPassword)}
+                      className='text-gray-600 cursor-pointer hover:text-gray-800 focus:outline-none text-sm font-medium'
+                    >
+                      {showLoginPassword ? 'Hide' : 'Show'}
+                    </button>
                   </div>
                 </label>
                 
@@ -253,7 +263,7 @@ const Login = () => {
                   <div className='flex items-center gap-3 w-full bg-white text-black rounded-xl px-3 py-2 border border-transparent focus-within:border-red-400'>
                     <img src={lock} alt='' className='w-5 h-5 opacity-70' />
                     <input
-                      type='password'
+                      type={showSignupPassword ? 'text' : 'password'}
                       name='password'
                       className='flex-1 bg-transparent outline-none p-2 placeholder-gray-500'
                       placeholder='Create a password'
@@ -262,6 +272,13 @@ const Login = () => {
                       onChange={handleSignupInputChange}
                       required
                     />
+                    <button
+                      type='button'
+                      onClick={() => setShowSignupPassword(!showSignupPassword)}
+                      className='text-gray-600 cursor-pointer hover:text-gray-800 focus:outline-none text-sm font-medium'
+                    >
+                      {showSignupPassword ? 'Hide' : 'Show'}
+                    </button>
                   </div>
                 </label>
                 <fieldset className='flex flex-col text-sm gap-3 w-full'>

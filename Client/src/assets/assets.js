@@ -52,6 +52,18 @@ export const whychooseData2 = [
 
     },
 ]
+export const restaurantDdata = [
+    {
+        name:'Date Cafe',
+        address : 'C-302 , Pitampura, Right Temple, East-Delhi, 110029'
+
+    },
+    {
+        name:'Date Cafe',
+        address : 'C-302 , Pitampura, Right Temple, East-Delhi, 110029'
+
+    },
+]
 export const aboutusdata = [
     {
         title:'Authenticity',
