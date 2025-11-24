@@ -53,14 +53,14 @@ export const whychooseData2 = [
     },
 ]
 export const restaurantDdata = [
-    {
+    {   id:'res001',
         name:'Date Cafe',
         address : 'C-302 , Pitampura, Right Temple, East-Delhi, 110029'
 
     },
-    {
-        name:'Date Cafe',
-        address : 'C-302 , Pitampura, Right Temple, East-Delhi, 110029'
+    {   id:'res002',
+        name:'Cafe free',
+        address : 'SM10 , Alpha 1, Greater Noida, East-Delhi, 110081'
 
     },
 ]

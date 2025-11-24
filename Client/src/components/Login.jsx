@@ -107,10 +107,23 @@ const Login = () => {
       if (data.user?.name) {
         localStorage.setItem('userName', data.user.name)
       }
+      if (data.user?.email) {
+        localStorage.setItem('userEmail', data.user.email)
+      }
 
-      const chosenGender = data.user?.gender || (isSignup ? signupGender : loginGender)
-      if (chosenGender) {
-        localStorage.setItem('gender', chosenGender)
+      const userRole = data.user?.role || 'user'
+      localStorage.setItem('userRole', userRole)
+
+      const isAdminUser = userRole === 'admin'
+      let chosenGender = null
+
+      if (!isAdminUser) {
+        chosenGender = data.user?.gender || (isSignup ? signupGender : loginGender)
+        if (chosenGender) {
+          localStorage.setItem('gender', chosenGender)
+        }
+      } else {
+        localStorage.removeItem('gender')
       }
 
       setStatus({
@@ -119,7 +132,11 @@ const Login = () => {
         message: isSignup ? 'Account created successfully!' : 'Logged in successfully!'
       })
 
-      navigate('/buycoupon', { state: { gender: chosenGender } })
+      if (isAdminUser) {
+        navigate('/adminhome')
+      } else {
+        navigate('/buycoupon', { state: { gender: chosenGender } })
+      }
     } catch (error) {
       const errorMessage =
         error.response?.data?.message || error.message || 'Something went wrong.'

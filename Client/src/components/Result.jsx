@@ -10,11 +10,28 @@ function Result() {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const dropdownRef = useRef(null)
   const userName = localStorage.getItem('userName') || 'User'
+  const coupon = location.state?.coupon
   
   const handleLogout = () => {
     localStorage.removeItem('token')
     localStorage.removeItem('userName')
+    localStorage.removeItem('userEmail')
+    localStorage.removeItem('gender')
+    localStorage.removeItem('userRole')
     navigate('/login')
+  }
+
+  // Format date helper
+  const formatDate = (dateString) => {
+    if (!dateString) return 'N/A'
+    const date = new Date(dateString)
+    const day = date.getDate()
+    const month = date.toLocaleString('default', { month: 'long' })
+    const year = date.getFullYear()
+    const suffix = day === 1 || day === 21 || day === 31 ? 'st' : 
+                   day === 2 || day === 22 ? 'nd' : 
+                   day === 3 || day === 23 ? 'rd' : 'th'
+    return `${day}${suffix} ${month} ${year}`
   }
 
   // Close dropdown when clicking outside
@@ -77,14 +94,35 @@ function Result() {
           </div>
 
           {/* Coupon Card */}
-          <div className='flex flex-col bg-gradient-to-b from-[#FF0066] to-[#8B0033] shadow-lg py-5 sm:py-6 md:py-7 px-4 sm:px-6 md:px-8 lg:px-8 gap-2 sm:gap-3 items-center justify-center rounded-2xl sm:rounded-3xl w-full max-w-md sm:max-w-lg md:max-w-xl'>
-            <h1 className='text-xl sm:text-2xl md:text-3xl font-bold'>DATE COUPON</h1>
-            <div className='text-base sm:text-lg md:text-xl lg:text-2xl bg-white/20 mt-3 sm:mt-4 rounded-lg w-full max-w-[180px] sm:max-w-[200px] md:max-w-[220px] p-2 sm:p-3 text-center font-mono font-semibold'>
-              Code: 0010
+          {coupon ? (
+            <div className='flex flex-col bg-gradient-to-b from-[#FF0066] to-[#8B0033] shadow-lg py-5 sm:py-6 md:py-7 px-4 sm:px-6 md:px-8 lg:px-8 gap-2 sm:gap-3 items-center justify-center rounded-2xl sm:rounded-3xl w-full max-w-md sm:max-w-lg md:max-w-xl'>
+              <h1 className='text-xl sm:text-2xl md:text-3xl font-bold'>DATE COUPON</h1>
+              <div className='text-base sm:text-lg md:text-xl lg:text-2xl bg-white/20 mt-3 sm:mt-4 rounded-lg w-full max-w-[180px] sm:max-w-[200px] md:max-w-[220px] p-2 sm:p-3 text-center font-mono font-semibold'>
+                Code: {coupon.couponCode}
+              </div>
+              {coupon.restaurantName && (
+                <p className='pt-2 sm:pt-3 text-xs sm:text-sm md:text-base lg:text-lg font-semibold'>
+                  Restaurant: {coupon.restaurantName}
+                </p>
+              )}
+              <p className='pt-1 sm:pt-2 text-xs sm:text-sm md:text-base lg:text-lg'>
+                Valid Till: {formatDate(coupon.expiryDate)}
+              </p>
+              <p className='text-xs sm:text-sm md:text-base text-center px-2 sm:px-4'>
+                Status: {coupon.status === 'pending_validation' ? 'Pending Admin Validation' : coupon.status}
+              </p>
+              <p className='text-xs sm:text-sm md:text-base text-center px-2 sm:px-4 mt-2'>
+                Terms: Valid only for one meetup. Non-transferable.
+              </p>
             </div>
-            <p className='pt-2 sm:pt-3 text-xs sm:text-sm md:text-base lg:text-lg'>Valid Till: 18th November 2025</p>
-            <p className='text-xs sm:text-sm md:text-base text-center px-2 sm:px-4'>Terms: Valid only for one meetup. Non-transferable.</p>
-          </div>
+          ) : (
+            <div className='flex flex-col bg-gradient-to-b from-[#FF0066] to-[#8B0033] shadow-lg py-5 sm:py-6 md:py-7 px-4 sm:px-6 md:px-8 lg:px-8 gap-2 sm:gap-3 items-center justify-center rounded-2xl sm:rounded-3xl w-full max-w-md sm:max-w-lg md:max-w-xl'>
+              <h1 className='text-xl sm:text-2xl md:text-3xl font-bold'>DATE COUPON</h1>
+              <p className='text-sm sm:text-base text-center px-2 sm:px-4'>
+                No coupon information available. Please purchase a coupon first.
+              </p>
+            </div>
+          )}
         </div>
       </div>
     </section>

@@ -6,6 +6,7 @@ import Footer from './components/Footer.jsx'
 import { Route, Routes } from 'react-router-dom'
 import Result from './components/Result.jsx'
 import AdminHome from './components/AdminHome.jsx'
+import PaymentPage from './components/PaymentPage.jsx'
 function App() {
 
   return (
@@ -16,6 +17,7 @@ function App() {
       <Route path='/buycoupon' element={<BuyCoupon/>} />
       <Route path='/result' element={<Result/>} />
       <Route path='/adminhome' element={<AdminHome/>} />
+      <Route path='/payment' element={<PaymentPage/>} />
     </Routes>
      <Footer/>
   
