@@ -109,7 +109,14 @@ const BuyCoupon = async (req, res) => {
     const upiId = process.env.UPI_ID;
     const upiLink = `upi://pay?pa=${upiId}&pn=Date%20Factor&am=${amount}&cu=INR&tn=Coupon%20Payment`;
 
-    const qrCodeImage = await QRCode.toDataURL(upiLink);
+    // Create a redirect link hosted on your domain
+      const domain = process.env.CLIENT_URL || "https://datefactor.com";
+
+      const finalLink = `${domain}/redirect?upi=${encodeURIComponent(upiLink)}`;
+
+      // Generate QR using your domain URL
+      const qrCodeImage = await QRCode.toDataURL(finalLink);
+
 
     res.status(200).json({
       success: true,
