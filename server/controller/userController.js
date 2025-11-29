@@ -2,9 +2,8 @@ import userModel from "../models/usermodel.js";
 import restaurantModel from "../models/restaurantmodel.js";
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
-import crypto from "crypto";
-import razorpay from 'razorpay';
-import QRCode from "qrcode";
+import { Resend } from 'resend';
+const resend = new Resend(process.env.RESEND_API_KEY);
 import nodemailer from 'nodemailer';
 const registerUser = async (req , res)=>{
     try {
@@ -118,73 +117,76 @@ const BuyCoupon = async (req, res) => {
 // Email service configuration
 const sendEmailToAdmin = async (user, coupon, paymentScreenshot) => {
   try {
-    const transporter = createMailTransporter();
+    let attachments = [];
 
-    const mailOptions = {
-      from: process.env.ADMIN_EMAIL,
+    if (paymentScreenshot) {
+      const base64Data = paymentScreenshot.replace(/^data:image\/\w+;base64,/, "");
+
+      attachments.push({
+        filename: "payment-screenshot.png",
+        content: base64Data,
+      });
+    }
+
+    await resend.emails.send({
+      from: process.env.RESEND_FROM,
       to: process.env.MANAGE_EMAIL,
-      subject: 'New Coupon Generated - Payment Validation Required',
+      subject: "New Coupon Generated - Payment Validation Required",
       html: `
         <h2>New Coupon Generated</h2>
+
         <h3>User Information:</h3>
         <p><strong>Name:</strong> ${user.name}</p>
         <p><strong>Email:</strong> ${user.email}</p>
         <p><strong>Phone:</strong> ${user.phone}</p>
         <p><strong>Gender:</strong> ${user.gender}</p>
-        
+
         <h3>Coupon Details:</h3>
         <p><strong>Coupon Code:</strong> ${coupon.couponCode}</p>
         <p><strong>Restaurant Name:</strong> ${coupon.restaurantName}</p>
         <p><strong>Amount Paid:</strong> ₹${coupon.amount}</p>
         <p><strong>Purchase Date:</strong> ${coupon.purchaseDate.toLocaleDateString()}</p>
         <p><strong>Expiry Date:</strong> ${coupon.expiryDate.toLocaleDateString()}</p>
-        
-        <h3>Payment Screenshot:</h3>
-        <img src="${paymentScreenshot}" alt="Payment Screenshot" style="max-width: 600px;" />
-        
-        <p>Please validate the payment and update the coupon status accordingly.</p>
-      `,
-      attachments: paymentScreenshot ? [{
-        filename: 'payment-screenshot.png',
-        content: paymentScreenshot.includes('base64,') 
-          ? paymentScreenshot.split('base64,')[1] 
-          : paymentScreenshot.replace(/^data:image\/\w+;base64,/, ''),
-        encoding: 'base64'
-      }] : []
-    };
 
-    await transporter.sendMail(mailOptions);
-    console.log('Email sent to admin successfully');
+        <h3>Payment Screenshot:</h3>
+        <img src="${paymentScreenshot}" style="max-width:600px;" />
+      `,
+      attachments
+    });
+
+    console.log("Email sent to admin using Resend");
+
   } catch (error) {
-    console.error('Error sending email to admin:', error);
+    console.error("Resend Error (admin email):", error);
     throw error;
   }
 };
 
+
 const sendCouponValidatedEmail = async (user, coupon) => {
   try {
-    const transporter = createMailTransporter();
-    const mailOptions = {
-      from: process.env.ADMIN_EMAIL,
+    await resend.emails.send({
+      from: process.env.RESEND_FROM,
       to: user.email,
-      subject: 'Your Date Factor coupon is active',
+      subject: "Your Date Factor coupon is active",
       html: `
         <h2>Coupon Activated</h2>
         <p>Hi ${user.name},</p>
         <p>Your coupon <strong>${coupon.couponCode}</strong> is now <strong>Active</strong>.</p>
         <ul>
           <li>Restaurant: ${coupon.restaurantName || 'Assigned partner restaurant'}</li>
-          <li>Valid until: ${coupon.expiryDate?.toLocaleDateString()}</li>
+          <li>Valid until: ${coupon.expiryDate.toLocaleDateString()}</li>
           <li>Status: ${coupon.status}</li>
         </ul>
         <p>Show this coupon code at the venue to enjoy your date experience.</p>
-        <p>Love,<br/>Team Date Factor</p>
+        <p>Love,<br>Team Date Factor</p>
       `
-    };
-    await transporter.sendMail(mailOptions);
-    console.log('Coupon activation email sent to user');
+    });
+
+    console.log("Coupon activation email sent through Resend");
+
   } catch (error) {
-    console.error('Error sending coupon activation email:', error);
+    console.error("Resend Error (activation email):", error);
     throw error;
   }
 };
