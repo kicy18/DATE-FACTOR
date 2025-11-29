@@ -115,20 +115,10 @@ const BuyCoupon = async (req, res) => {
 
     const upiLink = `upi://pay?pa=${upiId}&pn=DateFactor&am=${amount}&cu=INR&tn=CouponPayment`;
 
-    // Generate QR image from UPI link
-    const qrCodeImage = await QRCode.toDataURL(upiLink);
 
-    return res.status(200).json({
-      success: true,
-      message: "QR code generated",
-      qrCodeImage,
-      amount
-    });
+
   } catch (err) {
-    console.error("Error in BuyCoupon:", err);
-    return res
-      .status(500)
-      .json({ success: false, message: "Error generating QR code", error: err.message });
+    console.error(err);
   }
 };
 
