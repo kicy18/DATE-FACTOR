@@ -3,7 +3,14 @@ import restaurantModel from "../models/restaurantmodel.js";
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import { Resend } from 'resend';
-const resend = new Resend(process.env.RESEND_API_KEY);
+
+const getResendClient = () => {
+  if (!process.env.RESEND_API_KEY) {
+    console.error("❌ RESEND_API_KEY is missing!");
+  }
+  return new Resend(process.env.RESEND_API_KEY);
+};
+
 import nodemailer from 'nodemailer';
 const registerUser = async (req , res)=>{
     try {
@@ -118,7 +125,7 @@ const BuyCoupon = async (req, res) => {
 const sendEmailToAdmin = async (user, coupon, paymentScreenshot) => {
   try {
     let attachments = [];
-
+    const resend = getResendClient();
     if (paymentScreenshot) {
       const base64Data = paymentScreenshot.replace(/^data:image\/\w+;base64,/, "");
 
@@ -165,6 +172,7 @@ const sendEmailToAdmin = async (user, coupon, paymentScreenshot) => {
 
 const sendCouponValidatedEmail = async (user, coupon) => {
   try {
+    const resend = getResendClient();
     await resend.emails.send({
       from: process.env.RESEND_FROM,
       to: user.email,
