@@ -4,6 +4,7 @@ import buycoupon_bg from '../assets/buycoupon_bg.svg'
 import login_df_logo from '../assets/login_df_logo.svg'
 import person from '../assets/person.svg'
 import apiClient from '../services/apiClient.js'
+import qr from '../assets/qr.jpg'
 
 function PaymentPage() {
   const location = useLocation()
@@ -19,7 +20,6 @@ function PaymentPage() {
   const storedGender = localStorage.getItem('gender')
   const gender = locationGender || storedGender || 'female'
   const userName = localStorage.getItem('userName') || 'User'
-  const qrCodeImage = location.state?.qrCodeImage
   const amount = location.state?.amount || (gender === 'male' ? 399 : 199)
   const price = `₹${amount}`
 
@@ -28,10 +28,11 @@ function PaymentPage() {
       localStorage.setItem('gender', locationGender)
     }
     // Redirect if no QR code
-    if (!qrCodeImage) {
+    if (!qr) {
       navigate('/buycoupon')
     }
-  }, [locationGender, qrCodeImage, navigate])
+
+  }, [locationGender, qr , navigate])
 
   const handleLogout = () => {
     localStorage.removeItem('token')
@@ -171,10 +172,10 @@ function PaymentPage() {
           </p>
 
           {/* QR Code Display */}
-          {qrCodeImage && (
+        {qr && (
             <div className='flex flex-col items-center gap-3 sm:gap-4 bg-black/40 backdrop-blur-sm rounded-2xl p-4 sm:p-6 w-full'>
               <img
-                src={qrCodeImage}
+                src={qr}
                 alt='Payment QR Code'
                 className='w-48 h-48 sm:w-64 sm:h-64 md:w-80 md:h-80 bg-white p-2 rounded-lg object-contain'
               />

@@ -112,10 +112,7 @@ const BuyCoupon = async (req, res) => {
 const upiLink = `upi://pay?pa=${upiId}&pn=DateFactor&am=${amount}&cu=INR&tn=CouponPayment`;
 
 // Generate QR without encoding again
-const qrCodeImage = await QRCode.toDataURL(upiLink, {
-  errorCorrectionLevel: 'H',
-  scale: 8,
-});
+
 
 
 
