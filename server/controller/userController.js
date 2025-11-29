@@ -106,14 +106,7 @@ const BuyCoupon = async (req, res) => {
     else amount = 299; // Optional: default if gender unspecified
 
     // Generate UPI Payment QR
-    const upiId = process.env.UPI_ID;
-    if (!upiId) {
-      return res
-        .status(500)
-        .json({ success: false, message: "Payment UPI ID is not configured on the server." });
-    }
-
-    const upiLink = `upi://pay?pa=${upiId}&pn=DateFactor&am=${amount}&cu=INR&tn=CouponPayment`;
+   
 
 
 
