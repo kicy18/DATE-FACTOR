@@ -107,27 +107,28 @@ const BuyCoupon = async (req, res) => {
 
     // Generate UPI Payment QR
     const upiId = process.env.UPI_ID;
+    if (!upiId) {
+      return res
+        .status(500)
+        .json({ success: false, message: "Payment UPI ID is not configured on the server." });
+    }
 
-// CLEAN UPI LINK (NO ENCODING)
-const upiLink = `upi://pay?pa=${upiId}&pn=DateFactor&am=${amount}&cu=INR&tn=CouponPayment`;
+    const upiLink = `upi://pay?pa=${upiId}&pn=DateFactor&am=${amount}&cu=INR&tn=CouponPayment`;
 
-// Generate QR without encoding again
+    // Generate QR image from UPI link
+    const qrCodeImage = await QRCode.toDataURL(upiLink);
 
-
-
-
-
-
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "QR code generated",
-      qrCodeImage: qrCodeImage,
-      amount: amount
+      qrCodeImage,
+      amount
     });
-
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: "Error generating QR code", error: err.message });
+    console.error("Error in BuyCoupon:", err);
+    return res
+      .status(500)
+      .json({ success: false, message: "Error generating QR code", error: err.message });
   }
 };
 
