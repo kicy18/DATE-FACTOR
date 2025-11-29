@@ -110,7 +110,7 @@ const BuyCoupon = async (req, res) => {
     const upiLink = `upi://pay?pa=${upiId}&pn=Date%20Factor&am=${amount}&cu=INR&tn=Coupon%20Payment`;
 
     // Create a redirect link hosted on your domain
-      const domain = process.env.CLIENT_URL || "https://datefactor.com";
+      const domain = process.env.CLIENT_URL || "https://datefactor.org";
 
       const finalLink = `${domain}/redirect?upi=${encodeURIComponent(upiLink)}`;
 
