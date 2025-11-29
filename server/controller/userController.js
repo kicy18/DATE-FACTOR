@@ -239,14 +239,7 @@ const submitPayment = async (req, res) => {
     user.coupons.push(newCoupon);
     await user.save();
 
-    // Send email to admin
-    try {
-      await sendEmailToAdmin(user, newCoupon, paymentScreenshot);
-    } catch (emailError) {
-      console.error('Email sending failed, but coupon created:', emailError);
-      // Continue even if email fails
-    }
-
+    // Send response immediately (don't wait for email)
     res.status(201).json({
       success: true,
       message: "Payment submitted successfully. Coupon generated and admin notified.",
@@ -258,6 +251,11 @@ const submitPayment = async (req, res) => {
         status: newCoupon.status,
         amount: newCoupon.amount
       }
+    });
+
+    // Send email to admin asynchronously (don't block response)
+    sendEmailToAdmin(user, newCoupon, paymentScreenshot).catch(emailError => {
+      console.error('Email sending failed, but coupon created:', emailError);
     });
 
   } catch (err) {
@@ -290,12 +288,7 @@ const validateCoupon = async (req, res) => {
     coupon.status = "active";
     await user.save();
 
-    try {
-      await sendCouponValidatedEmail(user, coupon);
-    } catch (emailError) {
-      console.error('Failed to send activation email to user:', emailError);
-    }
-
+    // Send response immediately
     res.json({
       success: true,
       message: "Coupon validated successfully",
@@ -311,6 +304,11 @@ const validateCoupon = async (req, res) => {
           phone: user.phone
         }
       }
+    });
+
+    // Send email asynchronously (don't block response)
+    sendCouponValidatedEmail(user, coupon).catch(emailError => {
+      console.error('Failed to send activation email to user:', emailError);
     });
   } catch (err) {
     console.error(err);
@@ -397,7 +395,8 @@ const getCoupons = async (req, res) => {
     const searchValue = search.trim();
     const searchRegex = searchValue ? new RegExp(searchValue, "i") : null;
 
-    const query = restaurantId ? { "coupons.restaurantId": restaurantId } : {};
+    // Build query - use string comparison for restaurantId to handle ObjectId properly
+    const query = restaurantId ? { "coupons.restaurantId": restaurantId.toString() } : {};
 
     const users = await userModel.find(query, {
       name: 1,
@@ -408,10 +407,15 @@ const getCoupons = async (req, res) => {
     });
 
     const coupons = [];
+    const restaurantIdString = restaurantId ? restaurantId.toString() : null;
 
     users.forEach(user => {
       user.coupons.forEach(coupon => {
-        const matchesRestaurant = restaurantId ? coupon.restaurantId === restaurantId : true;
+        // Compare restaurantId as strings to ensure proper matching
+        const couponRestaurantId = coupon.restaurantId?.toString();
+        const matchesRestaurant = restaurantIdString 
+          ? couponRestaurantId === restaurantIdString 
+          : true;
         const matchesSearch =
           !searchRegex ||
           searchRegex.test(coupon.couponCode) ||

@@ -1,4 +1,5 @@
 import restaurantModel from '../models/restaurantmodel.js';
+import userModel from '../models/usermodel.js';
 
 const normalizePrice = (value, fallback) => {
   if (value === undefined || value === null || value === '') {
@@ -57,7 +58,18 @@ export const deleteRestaurant = async (req, res) => {
       return res.status(404).json({ success: false, message: 'Restaurant not found' });
     }
 
-    res.json({ success: true, message: 'Restaurant deleted successfully' });
+    // Delete all coupons associated with this restaurant
+    const restaurantIdString = id.toString();
+    const users = await userModel.find({ "coupons.restaurantId": restaurantIdString });
+    
+    for (const user of users) {
+      user.coupons = user.coupons.filter(
+        coupon => coupon.restaurantId?.toString() !== restaurantIdString
+      );
+      await user.save();
+    }
+
+    res.json({ success: true, message: 'Restaurant and associated coupons deleted successfully' });
   } catch (error) {
     console.error('Error deleting restaurant:', error);
     res.status(500).json({ success: false, message: 'Failed to delete restaurant' });
