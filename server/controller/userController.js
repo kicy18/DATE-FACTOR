@@ -108,15 +108,15 @@ const BuyCoupon = async (req, res) => {
     // Generate UPI Payment QR
     const upiId = process.env.UPI_ID;
 
-const upiLink =
-  "upi://pay" +
-  `?pa=${encodeURIComponent(upiId)}` +
-  `&pn=${encodeURIComponent("Date Factor")}` +
-  `&am=${encodeURIComponent(amount.toString())}` +
-  "&cu=INR" +
-  `&tn=${encodeURIComponent("Coupon Payment")}`;
+// CLEAN UPI LINK (NO ENCODING)
+const upiLink = `upi://pay?pa=${upiId}&pn=DateFactor&am=${amount}&cu=INR&tn=CouponPayment`;
 
-const qrCodeImage = await QRCode.toDataURL(upiLink);
+// Generate QR without encoding again
+const qrCodeImage = await QRCode.toDataURL(upiLink, {
+  errorCorrectionLevel: 'H',
+  scale: 8,
+});
+
 
 
 
