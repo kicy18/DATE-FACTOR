@@ -287,6 +287,9 @@ const validateCoupon = async (req, res) => {
 
     coupon.status = "active";
     await user.save();
+    sendCouponValidatedEmail(user, coupon).catch(emailError => {
+      console.error('Failed to send activation email to user:', emailError);
+    });
 
     // Send response immediately
     res.json({
@@ -307,9 +310,7 @@ const validateCoupon = async (req, res) => {
     });
 
     // Send email asynchronously (don't block response)
-    sendCouponValidatedEmail(user, coupon).catch(emailError => {
-      console.error('Failed to send activation email to user:', emailError);
-    });
+    
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false, message: "Error validating coupon", error: err.message });
