@@ -111,23 +111,10 @@ const BuyCoupon = async (req, res) => {
 // CLEAN UPI LINK (NO ENCODING)
 const upiLink = `upi://pay?pa=${upiId}&pn=DateFactor&am=${amount}&cu=INR&tn=CouponPayment`;
 
-// Generate QR without encoding again
 
-
-
-
-
-
-    res.status(200).json({
-      success: true,
-      message: "QR code generated",
-      qrCodeImage: qrCodeImage,
-      amount: amount
-    });
 
   } catch (err) {
     console.error(err);
-    res.status(500).json({ success: false, message: "Error generating QR code", error: err.message });
   }
 };
 
