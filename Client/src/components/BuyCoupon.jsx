@@ -3,14 +3,11 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import buycoupon_bg from '../assets/buycoupon_bg.svg'
 import login_df_logo from '../assets/login_df_logo.svg'
 import person from '../assets/person.svg'
-import apiClient from '../services/apiClient.js'
 
 function BuyCoupon() {
   const location = useLocation()
   const navigate = useNavigate()
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
   const dropdownRef = useRef(null)
   const locationGender = location.state?.gender
   const storedGender = localStorage.getItem('gender')
@@ -28,39 +25,11 @@ function BuyCoupon() {
     }
   }, [locationGender])
 
-  const handleBuyCoupon = async () => {
-    setLoading(true)
-    setError('')
-    
-    try {
-      const userEmail = localStorage.getItem('userEmail') || ''
-      if (!userEmail) {
-        setError('User email not found. Please login again.')
-        setLoading(false)
-        return
-      }
-
-      const { data } = await apiClient.post('/api/user/buy', {
-        userEmail: userEmail
-      })
-
-      if (data.success) {
-        // Navigate to payment page with QR code
-        navigate('/payment', {
-          state: {
-            qrCodeImage: data.qrCodeImage,
-            amount: data.amount
-          }
-        })
-      } else {
-        setError(data.message || 'Failed to generate QR code')
-      }
-    } catch (err) {
-      console.error('Error buying coupon:', err)
-      setError(err.response?.data?.message || 'Failed to process request. Please try again.')
-    } finally {
-      setLoading(false)
-    }
+  const handleBuyCoupon = () => {
+    // Directly navigate to payment page with gender info only
+    navigate('/payment', {
+      state: { gender }
+    })
   }
 
   const handleLogout = () => {
@@ -139,14 +108,10 @@ function BuyCoupon() {
             </p>
             <button 
               onClick={handleBuyCoupon}
-              disabled={loading}
-              className='bg-red-600 hover:bg-red-700 disabled:bg-gray-500 disabled:cursor-not-allowed rounded-xl px-6 sm:px-8 md:px-10 py-2 sm:py-3 text-sm sm:text-base font-semibold cursor-pointer transition mt-1 sm:mt-2 w-full sm:w-auto'
+              className='bg-red-600 hover:bg-red-700 rounded-xl px-6 sm:px-8 md:px-10 py-2 sm:py-3 text-sm sm:text-base font-semibold cursor-pointer transition mt-1 sm:mt-2 w-full sm:w-auto'
             >
-              {loading ? 'Processing...' : 'GET YOUR DATE'}
+              GET YOUR DATE
             </button>
-            {error && (
-              <p className='text-red-400 text-xs sm:text-sm mt-2'>{error}</p>
-            )}
             <p className='text-xs sm:text-sm mt-2 sm:mt-3 text-gray-200 max-w-xl'>
               Why wait? Grab your coupon now and turn your match into a real connection.
             </p>

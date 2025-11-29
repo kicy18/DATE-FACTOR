@@ -3,17 +3,13 @@ import { useLocation, useNavigate } from 'react-router-dom'
 import buycoupon_bg from '../assets/buycoupon_bg.svg'
 import login_df_logo from '../assets/login_df_logo.svg'
 import person from '../assets/person.svg'
-import apiClient from '../services/apiClient.js'
 import qr from '../assets/qr.jpg'
 
 function PaymentPage() {
   const location = useLocation()
   const navigate = useNavigate()
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
-  const [paymentScreenshot, setPaymentScreenshot] = useState(null)
   const [screenshotPreview, setScreenshotPreview] = useState(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
   const dropdownRef = useRef(null)
   const fileInputRef = useRef(null)
   const locationGender = location.state?.gender
@@ -47,72 +43,30 @@ function PaymentPage() {
     const file = e.target.files[0]
     if (file) {
       if (file.type.startsWith('image/')) {
-        setPaymentScreenshot(file)
         const reader = new FileReader()
         reader.onloadend = () => {
           setScreenshotPreview(reader.result)
         }
         reader.readAsDataURL(file)
-        setError('')
       } else {
-        setError('Please select an image file')
+        // ignore non-image files silently for now
       }
     }
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    
-    if (!paymentScreenshot) {
-      setError('Please upload payment screenshot')
-      return
-    }
-
-    setLoading(true)
-    setError('')
-
-    try {
-      // Convert file to base64
-      const reader = new FileReader()
-      reader.onloadend = async () => {
-        const base64Screenshot = reader.result
-        
-        const userEmail = localStorage.getItem('userEmail') || ''
-        if (!userEmail) {
-          setError('User email not found. Please login again.')
-          setLoading(false)
-          return
-        }
-
-        try {
-          const { data } = await apiClient.post('/api/user/submit-payment', {
-            userEmail: userEmail,
-            paymentScreenshot: base64Screenshot
-          })
-
-          if (data.success) {
-            // Navigate to result page with coupon information
-            navigate('/result', {
-              state: {
-                coupon: data.coupon
-              }
-            })
-          } else {
-            setError(data.message || 'Failed to submit payment')
-          }
-        } catch (err) {
-          console.error('Error submitting payment:', err)
-          setError(err.response?.data?.message || 'Failed to submit payment. Please try again.')
-        } finally {
-          setLoading(false)
+    // Directly go to result page with a simple dummy coupon; no backend dependency
+    navigate('/result', {
+      state: {
+        coupon: {
+          couponCode: 'DATE' + Math.floor(100 + Math.random() * 900),
+          restaurantName: 'Partner Restaurant',
+          expiryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+          status: 'pending_validation'
         }
       }
-      reader.readAsDataURL(paymentScreenshot)
-    } catch (err) {
-      console.error('Error processing screenshot:', err)
-      setError('Failed to process screenshot. Please try again.')
-      setLoading(false)
-    }
+    })
   }
 
   // Close dropdown when clicking outside
@@ -216,16 +170,11 @@ function PaymentPage() {
               )}
             </div>
 
-            {error && (
-              <p className='text-red-400 text-xs sm:text-sm'>{error}</p>
-            )}
-
             <button
               type='submit'
-              disabled={loading || !paymentScreenshot}
               className='bg-red-600 hover:bg-red-700 disabled:bg-gray-500 disabled:cursor-not-allowed rounded-xl px-8 py-3 text-sm sm:text-base font-semibold cursor-pointer transition w-full'
             >
-              {loading ? 'Submitting...' : 'Submit Payment'}
+              Submit Payment
             </button>
           </form>
         </div>
