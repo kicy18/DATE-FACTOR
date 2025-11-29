@@ -28,8 +28,12 @@ function BuyCoupon() {
   const handleBuyCoupon = () => {
     // Directly navigate to payment page with gender info only
     navigate('/payment', {
-      state: { gender }
-    })
+        state: {
+          gender,
+          amount: gender === "male" ? 399 : 199
+        }
+      })
+
   }
 
   const handleLogout = () => {

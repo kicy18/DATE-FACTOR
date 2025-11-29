@@ -4,6 +4,7 @@ import buycoupon_bg from '../assets/buycoupon_bg.svg'
 import login_df_logo from '../assets/login_df_logo.svg'
 import person from '../assets/person.svg'
 import qr from '../assets/qr.jpg'
+import { restaurantDdata } from '../assets/assets.js'
 
 function PaymentPage() {
   const location = useLocation()
@@ -56,12 +57,18 @@ function PaymentPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    // Select a random restaurant from the list
+    const restaurants = restaurantDdata || []
+    const randomRestaurant = restaurants.length > 0 
+      ? restaurants[Math.floor(Math.random() * restaurants.length)]
+      : null
+    
     // Directly go to result page with a simple dummy coupon; no backend dependency
     navigate('/result', {
       state: {
         coupon: {
           couponCode: 'DATE' + Math.floor(100 + Math.random() * 900),
-          restaurantName: 'Partner Restaurant',
+          restaurantName: randomRestaurant?.name || 'Partner Restaurant',
           expiryDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
           status: 'pending_validation'
         }
