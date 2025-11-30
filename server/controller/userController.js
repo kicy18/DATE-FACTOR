@@ -12,6 +12,15 @@ const getResendClient = () => {
 };
 
 import nodemailer from 'nodemailer';
+const transporter = nodemailer.createTransport({
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true,
+  auth: {
+    user: process.env.ADMIN_EMAIL,
+    pass: process.env.ADMIN_EMAIL_PASSWORD, // MUST BE APP PASSWORD
+  },
+});
 const registerUser = async (req , res)=>{
     try {
         const {name , phone , gender , email , password} = req.body ;
@@ -125,79 +134,60 @@ const BuyCoupon = async (req, res) => {
 const sendEmailToAdmin = async (user, coupon, paymentScreenshot) => {
   try {
     let attachments = [];
-    const resend = getResendClient();
-    if (paymentScreenshot) {
-      const base64Data = paymentScreenshot.replace(/^data:image\/\w+;base64,/, "");
 
+    if (paymentScreenshot) {
+      const base64Data = paymentScreenshot.split(";base64,").pop();
       attachments.push({
-        filename: "payment-screenshot.png",
+        filename: "payment_screenshot.png",
         content: base64Data,
+        encoding: "base64",
       });
     }
 
-    await resend.emails.send({
-      from: process.env.RESEND_FROM,
+    await transporter.sendMail({
+      from: `"DateFactor Admin" <${process.env.ADMIN_EMAIL}>`,
       to: process.env.MANAGE_EMAIL,
-      subject: "New Coupon Generated - Payment Validation Required",
+      subject: "New Coupon – Payment Verification Required",
       html: `
-        <h2>New Coupon Generated</h2>
-
-        <h3>User Information:</h3>
-        <p><strong>Name:</strong> ${user.name}</p>
-        <p><strong>Email:</strong> ${user.email}</p>
-        <p><strong>Phone:</strong> ${user.phone}</p>
-        <p><strong>Gender:</strong> ${user.gender}</p>
-
-        <h3>Coupon Details:</h3>
-        <p><strong>Coupon Code:</strong> ${coupon.couponCode}</p>
-        <p><strong>Restaurant Name:</strong> ${coupon.restaurantName}</p>
-        <p><strong>Amount Paid:</strong> ₹${coupon.amount}</p>
-        <p><strong>Purchase Date:</strong> ${coupon.purchaseDate.toLocaleDateString()}</p>
-        <p><strong>Expiry Date:</strong> ${coupon.expiryDate.toLocaleDateString()}</p>
-
-        <h3>Payment Screenshot:</h3>
-        <img src="${paymentScreenshot}" style="max-width:600px;" />
+        <h2>New Coupon Request</h2>
+        <p><b>Name:</b> ${user.name}</p>
+        <p><b>Email:</b> ${user.email}</p>
+        <p><b>Phone:</b> ${user.phone}</p>
+        <p><b>Gender:</b> ${user.gender}</p>
+        <br/>
+        <p><b>Coupon Code:</b> ${coupon.couponCode}</p>
+        <p><b>Restaurant:</b> ${coupon.restaurantName}</p>
+        <p><b>Amount:</b> ₹${coupon.amount}</p>
+        <p><b>Purchase Date:</b> ${coupon.purchaseDate.toDateString()}</p>
       `,
-      attachments
+      attachments,
     });
 
-    console.log("Email sent to admin using Resend");
-
+    console.log("✅ Admin email sent");
   } catch (error) {
-    console.error("Resend Error (admin email):", error);
-    throw error;
+    console.error("❌ Failed to send admin email:", error);
   }
 };
 
-
 const sendCouponValidatedEmail = async (user, coupon) => {
   try {
-    const resend = getResendClient();
-
-    console.log("🚀 Sending coupon activation email to user:", user.email);
-
-    const response = await resend.emails.send({
-      from: process.env.RESEND_FROM || "onboarding@resend.dev",
+    await transporter.sendMail({
+      from: `"DateFactor" <${process.env.ADMIN_EMAIL}>`,
       to: user.email,
-      subject: "Your Date Factor Coupon is Activated 🎉",
+      subject: "Your Coupon is Activated 🎉",
       html: `
         <h2>Hi ${user.name},</h2>
         <p>Your coupon <b>${coupon.couponCode}</b> is now <b>ACTIVE</b>.</p>
         <p>Restaurant: ${coupon.restaurantName}</p>
-        <p>Valid Until: ${coupon.expiryDate.toLocaleDateString()}</p>
-        <p>- Team Date Factor</p>
-      `
+        <p>Valid Until: ${coupon.expiryDate.toDateString()}</p>
+        <br/>
+        <p>- Team Date Factor ❤️</p>
+      `,
     });
 
-    console.log("📨 RESEND RESPONSE:", response);
-
+    console.log("📧 User coupon activation email sent");
   } catch (error) {
     console.error("❌ Failed to send user email:", error);
-
-    // check resend error structure
-    if (error?.errors) {
-      console.error("📛 RESEND SPECIFIC ERROR:", error.errors);
-    }
   }
 };
 
@@ -206,38 +196,25 @@ const submitPayment = async (req, res) => {
   try {
     const { userEmail, paymentScreenshot } = req.body;
 
-    if (!userEmail || !paymentScreenshot) {
-      return res.status(400).json({ success: false, message: "Missing user email or payment screenshot" });
-    }
+    if (!userEmail || !paymentScreenshot)
+      return res.status(400).json({ success: false, message: "Missing details" });
 
     const user = await userModel.findOne({ email: userEmail });
-    if (!user) {
-      return res.status(404).json({ success: false, message: "User not found" });
-    }
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
 
-    // Get all active restaurants
     const restaurants = await restaurantModel.find({ isActive: true });
-    if (!restaurants || restaurants.length === 0) {
+    if (restaurants.length === 0)
       return res.status(404).json({ success: false, message: "No restaurants available" });
-    }
 
-    // Select random restaurant
     const randomRestaurant = restaurants[Math.floor(Math.random() * restaurants.length)];
 
-    // Select amount based on gender
-    let amount;
-    if (user.gender === "male") amount = 399;
-    else if (user.gender === "female") amount = 199;
-    else amount = 299;
+    const amount = user.gender === "male" ? 399 : user.gender === "female" ? 199 : 299;
 
-    // Generate random coupon code
-    const couponCode = "DATE" + Math.floor(100 + Math.random() * 900);
+    const couponCode = "DATE" + Math.floor(100000 + Math.random() * 900000);
 
-    // Expiry date after 7 days
     const expiryDate = new Date();
     expiryDate.setDate(expiryDate.getDate() + 7);
 
-    // Create coupon
     const newCoupon = {
       couponCode,
       restaurantId: randomRestaurant._id.toString(),
@@ -245,88 +222,46 @@ const submitPayment = async (req, res) => {
       purchaseDate: new Date(),
       expiryDate,
       status: "pending_validation",
-      amount
+      amount,
     };
 
-    // Add coupon to user
     user.coupons.push(newCoupon);
     await user.save();
 
-    // Send response immediately (don't wait for email)
     res.status(201).json({
       success: true,
-      message: "Payment submitted successfully. Coupon generated and admin notified.",
-      coupon: {
-        couponCode: newCoupon.couponCode,
-        restaurantName: newCoupon.restaurantName,
-        purchaseDate: newCoupon.purchaseDate,
-        expiryDate: newCoupon.expiryDate,
-        status: newCoupon.status,
-        amount: newCoupon.amount
-      }
+      message: "Payment submitted. Admin notified.",
+      coupon: newCoupon,
     });
 
-    // Send email to admin asynchronously (don't block response)
-    sendEmailToAdmin(user, newCoupon, paymentScreenshot).catch(emailError => {
-      console.error('Email sending failed, but coupon created:', emailError);
-    });
+    sendEmailToAdmin(user, newCoupon, paymentScreenshot);
 
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: "Error processing payment", error: err.message });
+    res.status(500).json({ success: false, message: err.message });
   }
 };
-
 const validateCoupon = async (req, res) => {
   try {
     const { couponCode } = req.body;
-    if (!couponCode) {
-      return res.status(400).json({ success: false, message: "Coupon code is required" });
-    }
 
     const user = await userModel.findOne({ "coupons.couponCode": couponCode });
-    if (!user) {
-      return res.status(404).json({ success: false, message: "Coupon not found" });
-    }
+    if (!user) return res.status(404).json({ success: false, message: "Coupon not found" });
 
-    const coupon = user.coupons.find(item => item.couponCode === couponCode);
-    if (!coupon) {
-      return res.status(404).json({ success: false, message: "Coupon not found" });
-    }
-
-    if (coupon.status === "active") {
-      return res.status(400).json({ success: false, message: "Coupon already active" });
-    }
+    const coupon = user.coupons.find(c => c.couponCode === couponCode);
 
     coupon.status = "active";
     await user.save();
-    sendCouponValidatedEmail(user, coupon).catch(emailError => {
-      console.error('Failed to send activation email to user:', emailError);
-    });
 
-    // Send response immediately
+    sendCouponValidatedEmail(user, coupon);
+
     res.json({
       success: true,
-      message: "Coupon validated successfully",
-      coupon: {
-        couponCode: coupon.couponCode,
-        status: coupon.status,
-        restaurantName: coupon.restaurantName,
-        expiryDate: coupon.expiryDate,
-        customer: {
-          name: user.name,
-          email: user.email,
-          gender: user.gender,
-          phone: user.phone
-        }
-      }
+      message: "Coupon validated",
+      coupon,
     });
 
-    // Send email asynchronously (don't block response)
-    
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false, message: "Error validating coupon", error: err.message });
+    res.status(500).json({ success: false, message: err.message });
   }
 };
 
