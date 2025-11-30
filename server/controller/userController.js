@@ -3,7 +3,7 @@ import restaurantModel from "../models/restaurantmodel.js";
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import { Resend } from 'resend';
-import { sendEmail } from "../utils/email.js";
+import { sendEmail } from "../utility/email.js"
 
 const registerUser = async (req , res)=>{
     try {
