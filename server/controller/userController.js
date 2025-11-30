@@ -173,31 +173,34 @@ const sendEmailToAdmin = async (user, coupon, paymentScreenshot) => {
 const sendCouponValidatedEmail = async (user, coupon) => {
   try {
     const resend = getResendClient();
-    await resend.emails.send({
-      from: process.env.RESEND_FROM,
+
+    console.log("🚀 Sending coupon activation email to user:", user.email);
+
+    const response = await resend.emails.send({
+      from: process.env.RESEND_FROM || "onboarding@resend.dev",
       to: user.email,
-      subject: "Your Date Factor coupon is active",
+      subject: "Your Date Factor Coupon is Activated 🎉",
       html: `
-        <h2>Coupon Activated</h2>
-        <p>Hi ${user.name},</p>
-        <p>Your coupon <strong>${coupon.couponCode}</strong> is now <strong>Active</strong>.</p>
-        <ul>
-          <li>Restaurant: ${coupon.restaurantName || 'Assigned partner restaurant'}</li>
-          <li>Valid until: ${coupon.expiryDate.toLocaleDateString()}</li>
-          <li>Status: ${coupon.status}</li>
-        </ul>
-        <p>Show this coupon code at the venue to enjoy your date experience.</p>
-        <p>Love,<br>Team Date Factor</p>
+        <h2>Hi ${user.name},</h2>
+        <p>Your coupon <b>${coupon.couponCode}</b> is now <b>ACTIVE</b>.</p>
+        <p>Restaurant: ${coupon.restaurantName}</p>
+        <p>Valid Until: ${coupon.expiryDate.toLocaleDateString()}</p>
+        <p>- Team Date Factor</p>
       `
     });
 
-    console.log("Coupon activation email sent through Resend");
+    console.log("📨 RESEND RESPONSE:", response);
 
   } catch (error) {
-    console.error("Resend Error (activation email):", error);
-    throw error;
+    console.error("❌ Failed to send user email:", error);
+
+    // check resend error structure
+    if (error?.errors) {
+      console.error("📛 RESEND SPECIFIC ERROR:", error.errors);
+    }
   }
 };
+
 
 const submitPayment = async (req, res) => {
   try {
