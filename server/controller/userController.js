@@ -131,12 +131,26 @@ const sendEmailToAdmin = async (user, coupon, screenshot) => {
   });
 };
 const sendCouponValidatedEmail = async (user, coupon) => {
+  // Fetch restaurant details to get address
+  let restaurantAddress = 'Address not available';
+  if (coupon.restaurantId) {
+    try {
+      const restaurant = await restaurantModel.findById(coupon.restaurantId);
+      if (restaurant && restaurant.location) {
+        restaurantAddress = restaurant.location;
+      }
+    } catch (err) {
+      console.error('Error fetching restaurant address:', err);
+    }
+  }
+
   const html = `
     <h2>Your Coupon is Activated 🎉</h2>
     <p>Hi ${user.name},</p>
     <p>Your coupon <b>${coupon.couponCode}</b> is now active.</p>
-    <p>Restaurant: ${coupon.restaurantName}</p>
-    <p>Valid until: ${coupon.expiryDate.toDateString()}</p>
+    <p><b>Restaurant:</b> ${coupon.restaurantName}</p>
+    <p><b>Address:</b> ${restaurantAddress}</p>
+    <p><b>Valid until:</b> ${coupon.expiryDate.toDateString()}</p>
     <p>Enjoy your date ❤️</p>
     <p><b>- Team Date Factor</b></p>
   `;
@@ -167,7 +181,7 @@ const submitPayment = async (req, res) => {
 
     const amount = user.gender === "male" ? 399 : user.gender === "female" ? 199 : 299;
 
-    const couponCode = "DATE" + Math.floor(100000 + Math.random() * 900000);
+    const couponCode = "DATE" + Math.floor(1000 + Math.random() * 9000);
 
     const expiryDate = new Date();
     expiryDate.setDate(expiryDate.getDate() + 7);
